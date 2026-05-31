@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Google Ads Campaign Analysis — 2024</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#1a1a1a;font-size:15px;line-height:1.6}
+
+/* NAV */
+nav{background:#fff;border-bottom:1px solid #e8e8e8;padding:0 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:6px;height:54px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+nav::-webkit-scrollbar{display:none}
+.nav-brand{font-size:14px;font-weight:700;color:#FF6B00;white-space:nowrap;margin-right:10px;flex-shrink:0}
+.nav-link{font-size:13px;color:#555;text-decoration:none;white-space:nowrap;padding:6px 10px;border-radius:6px;transition:background .15s,color .15s;flex-shrink:0}
+.nav-link:hover{background:#FFF0E5;color:#FF6B00}
+
+/* HEADER */
+.header{background:#FF6B00;padding:40px 20px 36px;color:#fff}
+.header-tag{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;opacity:.75;margin-bottom:10px}
+.header h1{font-size:clamp(22px,5vw,30px);font-weight:700;line-height:1.2;margin-bottom:10px}
+.header p{font-size:14px;opacity:.85;line-height:1.65;max-width:520px;margin-bottom:18px}
+.header-links{display:flex;gap:12px;flex-wrap:wrap}
+.header-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;text-decoration:none;font-size:12px;font-weight:600;padding:7px 14px;border-radius:6px;letter-spacing:.03em;transition:background .15s}
+.header-btn:hover{background:rgba(255,255,255,0.3)}
+
+/* SECTIONS */
+.section{padding:32px 20px;border-bottom:1px solid #f0f0f0}
+.section:last-child{border-bottom:none}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#FF6B00;margin-bottom:8px}
+.section h2{font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:6px}
+.section-desc{font-size:13px;color:#666;line-height:1.65;margin-bottom:20px}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:6px}
+.kpi{background:#fafafa;border:1px solid #e8e8e8;border-radius:10px;padding:16px 14px}
+.kpi-val{font-size:24px;font-weight:700;color:#1a1a1a;line-height:1}
+.kpi-lbl{font-size:12px;color:#777;margin-top:4px;line-height:1.4}
+.kpi-note{font-size:11px;margin-top:6px;font-weight:500}
+.kpi-good{color:#2e7d32}.kpi-warn{color:#e65100}.kpi-ok{color:#1565c0}
+.kpi-orange .kpi-val{color:#FF6B00}
+
+/* CHART CARD */
+.chart-card{background:#fafafa;border:1px solid #e8e8e8;border-radius:10px;padding:18px;margin-bottom:14px}
+.chart-card-title{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:3px}
+.chart-card-sub{font-size:12px;color:#888;margin-bottom:14px}
+.chart-wrap{position:relative;width:100%}
+
+/* TERMS */
+.term-list{display:flex;flex-direction:column;gap:10px}
+.term-row{display:flex;gap:12px;padding:12px;background:#fafafa;border:1px solid #e8e8e8;border-radius:8px}
+.term-abbr{font-size:13px;font-weight:700;color:#FF6B00;min-width:40px;flex-shrink:0;padding-top:1px}
+.term-def{font-size:13px;color:#444;line-height:1.55}
+
+/* DEVICE BARS */
+.dev-bars{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.dev-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.dev-name{font-weight:500;color:#1a1a1a}
+.dev-val{color:#666}
+.dev-track{height:8px;background:#eee;border-radius:99px;overflow:hidden}
+.dev-fill{height:100%;border-radius:99px}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#999;padding:8px 6px;text-align:left;border-bottom:1.5px solid #e8e8e8;font-weight:600}
+.data-table td{padding:10px 6px;border-bottom:1px solid #f0f0f0;color:#1a1a1a;vertical-align:top}
+.data-table tr:last-child td{border-bottom:none}
+.data-table .num{text-align:right;color:#444;font-variant-numeric:tabular-nums}
+.row-best td{background:#FFF8F0}
+.row-worst td{background:#FFF5F5}
+.pill{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;margin-left:4px;vertical-align:middle}
+.pill-green{background:#E8F5E9;color:#2e7d32}
+.pill-red{background:#FFEBEE;color:#c62828}
+.pill-blue{background:#E3F2FD;color:#1565c0}
+
+/* INSIGHT CARDS */
+.insights{display:flex;flex-direction:column;gap:10px}
+.insight{display:flex;gap:12px;padding:14px;background:#fafafa;border:1px solid #e8e8e8;border-radius:10px;align-items:flex-start}
+.insight-icon{width:32px;height:32px;background:#FFF0E5;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.insight-head{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:3px}
+.insight-txt{font-size:12px;color:#666;line-height:1.55}
+
+/* RECS */
+.rec-list{border:1px solid #e8e8e8;border-radius:10px;overflow:hidden}
+.rec-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid #f0f0f0;gap:10px}
+.rec-row:last-child{border-bottom:none}
+.rec-find{font-size:13px;color:#444;flex:1}
+.rec-action{font-size:11px;font-weight:600;background:#FFF0E5;color:#e65100;border-radius:6px;padding:4px 9px;white-space:nowrap;flex-shrink:0}
+
+/* NOTE BOX */
+.note{background:#FFF8F0;border-left:3px solid #FF6B00;border-radius:0 8px 8px 0;padding:12px 14px;font-size:13px;color:#5a3a1a;line-height:1.65;margin-top:14px}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#555}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ANOMALY */
+.anomaly-box{background:#FFF5F5;border:1px solid #ffcdd2;border-radius:10px;overflow:hidden;margin-bottom:14px}
+.anomaly-top{background:#FFEBEE;padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #ffcdd2}
+.anomaly-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;background:#c62828;color:#fff;padding:3px 8px;border-radius:99px}
+.anomaly-title{font-size:14px;font-weight:600;color:#b71c1c}
+.anomaly-body{padding:16px 18px;font-size:13px;color:#5a2020;line-height:1.75}
+.anomaly-body strong{color:#b71c1c}
+.anomaly-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.a-stat{background:#fff;border:1px solid #ffcdd2;border-radius:8px;padding:12px;text-align:center}
+.a-stat-val{font-size:20px;font-weight:700;color:#c62828;margin-bottom:2px}
+.a-stat-lbl{font-size:11px;color:#888}
+
+/* FOOTER */
+footer{background:#fafafa;border-top:1px solid #e8e8e8;padding:28px 20px;text-align:center}
+.footer-name{font-size:15px;font-weight:700;color:#FF6B00;margin-bottom:6px}
+.footer-sub{font-size:12px;color:#999;line-height:2}
+.footer-links{display:flex;justify-content:center;gap:16px;margin-top:12px;flex-wrap:wrap}
+.footer-link{font-size:12px;color:#FF6B00;text-decoration:none;font-weight:600}
+.footer-link:hover{text-decoration:underline}
+
+@media(min-width:640px){
+  .kpi-grid{grid-template-columns:repeat(4,1fr)}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .anomaly-stats{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">📊 Google Ads 2024</span>
+  <a class="nav-link" href="#overview">Overview</a>
+  <a class="nav-link" href="#monthly">Monthly</a>
+  <a class="nav-link" href="#devices">Devices</a>
+  <a class="nav-link" href="#keywords">Keywords</a>
+  <a class="nav-link" href="#weekdays">Weekdays</a>
+  <a class="nav-link" href="#findings">Findings</a>
+</nav>
+
+<div class="header">
+  <div class="header-tag">Data Analysis Report · Hyderabad, India · 2024</div>
+  <h1>Google Ads Campaign<br>Analysis</h1>
+  <p>A complete breakdown of how a Data Analytics Course was advertised on Google in 2024 — from raw uncleaned data to actionable business insights. 2,600 rows · 13 columns · Python + Pandas + Matplotlib.</p>
+  <div class="header-links">
+    <a class="header-btn" href="https://github.com/yashraj-DS" target="_blank">⭐ GitHub Repo</a>
+    <a class="header-btn" href="https://www.linkedin.com/in/yashraj-sharma-4a87ab348/" target="_blank">💼 LinkedIn</a>
+  </div>
+</div>
+
+<!-- WHAT IS THIS -->
+<div class="section">
+  <div class="section-label">About this analysis</div>
+  <h2>What was studied?</h2>
+  <p class="section-desc">This project analyses a real Google Ads dataset for a "Data Analytics Course" running through all of 2024. The data covers 6 keywords, 3 device types (Desktop, Mobile, Tablet), and every day of the week — cleaned column by column, feature-engineered, and visualised using Python.</p>
+  <div class="term-list">
+    <div class="term-row"><span class="term-abbr">ROAS</span><span class="term-def">Return on Ad Spend — for every $1 spent on ads, how many dollars came back as revenue. 7× means $7 earned per $1 spent.</span></div>
+    <div class="term-row"><span class="term-abbr">ROI</span><span class="term-def">Return on Investment — profit as a percentage of cost. 590% means the campaign made ~6× its cost in pure profit.</span></div>
+    <div class="term-row"><span class="term-abbr">CTR</span><span class="term-def">Click-Through Rate — out of 100 people who saw the ad, how many clicked it.</span></div>
+    <div class="term-row"><span class="term-abbr">CPC</span><span class="term-def">Cost Per Click — how much was paid each time someone clicked the ad.</span></div>
+    <div class="term-row"><span class="term-abbr">CPL</span><span class="term-def">Cost Per Lead — how much it costs to get one person to enquire or sign up.</span></div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="section" id="overview">
+  <div class="section-label">Campaign overview</div>
+  <h2>Overall Performance</h2>
+  <p class="section-desc">The campaign ran throughout 2024. At 6.97× ROAS, for every dollar spent on ads, nearly $7 returned in revenue.</p>
+  <div class="kpi-grid">
+    <div class="kpi kpi-orange"><div class="kpi-val">$3.90M</div><div class="kpi-lbl">Total Revenue</div><div class="kpi-note kpi-good">↑ Highly profitable</div></div>
+    <div class="kpi kpi-orange"><div class="kpi-val">6.97×</div><div class="kpi-lbl">Overall ROAS</div><div class="kpi-note kpi-good">↑ Well above average</div></div>
+    <div class="kpi"><div class="kpi-val">$559K</div><div class="kpi-lbl">Total Ad Spend</div><div class="kpi-note kpi-ok">Invested</div></div>
+    <div class="kpi"><div class="kpi-val">$3.34M</div><div class="kpi-lbl">Gross Profit</div><div class="kpi-note kpi-good">Revenue minus spend</div></div>
+    <div class="kpi"><div class="kpi-val">361K</div><div class="kpi-lbl">Total Clicks</div><div class="kpi-note kpi-ok">CTR: 3.07%</div></div>
+    <div class="kpi"><div class="kpi-val">16,985</div><div class="kpi-lbl">Conversions</div><div class="kpi-note kpi-ok">Rate: 5.01%</div></div>
+    <div class="kpi"><div class="kpi-val">$1.55</div><div class="kpi-lbl">Avg CPC</div><div class="kpi-note">Range: $1.51–$1.60</div></div>
+    <div class="kpi"><div class="kpi-val">76%</div><div class="kpi-lbl">Revenue from Nov</div><div class="kpi-note kpi-warn">⚠ Concentration risk</div></div>
+  </div>
+</div>
+
+<!-- MONTHLY -->
+<div class="section" id="monthly">
+  <div class="section-label">Monthly breakdown</div>
+  <h2>Revenue vs Ad Spend by Month</h2>
+  <p class="section-desc">November dominated the year — generating 76% of annual revenue ($2.98M) with $426K spend. Log scale is used below so other months remain readable alongside November's spike.</p>
+
+  <div class="chart-card">
+    <div class="chart-card-title">Monthly Revenue vs Ad Spend</div>
+    <div class="chart-card-sub">Log scale — November spike is real, not a data error</div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#FF6B00"></span>Revenue</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#c5c5c0"></span>Ad Spend</span>
+    </div>
+    <div class="chart-wrap" style="height:240px"><canvas id="monthlyBar"></canvas></div>
+  </div>
+
+  <div class="two-col">
+    <div class="chart-card">
+      <div class="chart-card-title">Monthly ROAS Trend</div>
+      <div class="chart-card-sub">How efficiently each month converted spend into revenue</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="roasLine"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Monthly Click Traffic</div>
+      <div class="chart-card-sub">Total clicks driven by ads each month</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="clicksBar"></canvas></div>
+    </div>
+  </div>
+
+  <div class="insights">
+    <div class="insight"><div class="insight-icon">📈</div><div><div class="insight-head">November generated 76% of annual revenue</div><div class="insight-txt">$2.98M revenue and $426K spend in November alone — roughly 27× higher than any other month. Likely a planned campaign scale-up or seasonal push.</div></div></div>
+    <div class="insight"><div class="insight-icon">📉</div><div><div class="insight-head">June was the weakest month — ROAS 6.36×</div><div class="insight-txt">Lowest ROAS of the year. Running targeted promotions or early-bird discounts in June could lift slow-season performance.</div></div></div>
+    <div class="insight"><div class="insight-icon">⚠️</div><div><div class="insight-head">76% concentration in one month is a business risk</div><div class="insight-txt">If November conditions change — more competition, algorithm shifts, budget cuts — annual performance collapses. Spreading budget across May, Jul, Aug is the strategic priority.</div></div></div>
+  </div>
+</div>
+
+<!-- ANOMALY -->
+<div class="section">
+  <div class="section-label">Anomaly investigation</div>
+  <h2>The November Spike</h2>
+  <p class="section-desc">November stood out immediately from the first monthly table. First step was verifying whether this was real data or a data quality issue.</p>
+  <div class="anomaly-box">
+    <div class="anomaly-top">
+      <span class="anomaly-badge">Anomaly Detected</span>
+      <span class="anomaly-title">Was it bad data — or a real campaign push?</span>
+    </div>
+    <div class="anomaly-body">
+      November showed <strong>$2.98M revenue</strong> and <strong>$426K spend</strong> — roughly <strong>27× higher</strong> than any other month. First check: cost-per-record in November averaged <strong>$214.63</strong> vs <strong>$216.58</strong> for other months. Consistent. Device and keyword splits inside November were proportional to the full year. <strong>Conclusion — this was a genuine planned budget scale-up, not corrupted data.</strong>
+      <div class="anomaly-stats">
+        <div class="a-stat"><div class="a-stat-val">$2.98M</div><div class="a-stat-lbl">Nov revenue</div></div>
+        <div class="a-stat"><div class="a-stat-val">76%</div><div class="a-stat-lbl">of annual total</div></div>
+        <div class="a-stat"><div class="a-stat-val">27×</div><div class="a-stat-lbl">above monthly avg</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEVICES -->
+<div class="section" id="devices">
+  <div class="section-label">Device performance</div>
+  <h2>Desktop vs Mobile vs Tablet</h2>
+  <p class="section-desc">All three devices are profitable and very close in performance. Revenue is almost equally split — Desktop $1.33M, Mobile $1.31M, Tablet $1.25M. Mobile leads in clicks at the lowest cost.</p>
+
+  <div class="two-col">
+    <div class="chart-card">
+      <div class="chart-card-title">Revenue Share by Device</div>
+      <div class="chart-card-sub">All three devices are nearly equal — ~34% each</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="deviceDoughnut"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Clicks by Device</div>
+      <div class="chart-card-sub">Mobile drives most traffic at lowest cost</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="deviceClicks"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-label" style="margin-top:4px">ROAS by device</div>
+  <div class="dev-bars" style="margin-top:12px">
+    <div>
+      <div class="dev-top"><span class="dev-name">Desktop</span><span class="dev-val">6.99× ROAS &nbsp;·&nbsp; $1.33M revenue</span></div>
+      <div class="dev-track"><div class="dev-fill" style="width:90%;background:#FF6B00"></div></div>
+    </div>
+    <div>
+      <div class="dev-top"><span class="dev-name">Tablet</span><span class="dev-val">6.99× ROAS &nbsp;·&nbsp; $1.25M revenue</span></div>
+      <div class="dev-track"><div class="dev-fill" style="width:80%;background:#FF9944"></div></div>
+    </div>
+    <div>
+      <div class="dev-top"><span class="dev-name">Mobile</span><span class="dev-val">6.92× ROAS &nbsp;·&nbsp; Most clicks, lowest CPC</span></div>
+      <div class="dev-track"><div class="dev-fill" style="width:70%;background:#c5c5c0"></div></div>
+    </div>
+  </div>
+  <div class="note">All three devices perform very similarly. If budget reallocation is needed, shifting some Tablet spend toward Mobile would improve efficiency — Mobile brings the most clicks at the lowest cost.</div>
+</div>
+
+<!-- KEYWORDS -->
+<div class="section" id="keywords">
+  <div class="section-label">Keyword performance</div>
+  <h2>Which Keywords Actually Work?</h2>
+  <p class="section-desc">Six keywords were tracked throughout 2024. All are profitable — CPC range is $1.51–$1.60, very tight. No keyword is wasting budget. Differences in ROAS and conversions guide smarter bid decisions.</p>
+
+  <div class="chart-card">
+    <div class="chart-card-title">Revenue by Keyword ($K)</div>
+    <div class="chart-card-sub">Total sales revenue attributed to each keyword</div>
+    <div class="chart-wrap" style="height:260px"><canvas id="kwRevenue"></canvas></div>
+  </div>
+
+  <div class="two-col">
+    <div class="chart-card">
+      <div class="chart-card-title">ROAS by Keyword</div>
+      <div class="chart-card-sub">Best return per dollar spent</div>
+      <div class="chart-wrap" style="height:240px"><canvas id="kwRoas"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Conversions by Keyword</div>
+      <div class="chart-card-sub">Total purchases per keyword</div>
+      <div class="chart-wrap" style="height:240px"><canvas id="kwConv"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-label" style="margin-top:4px">Full keyword breakdown</div>
+  <div style="overflow-x:auto;margin-top:12px">
+    <table class="data-table">
+      <thead><tr><th>Keyword</th><th class="num">Revenue</th><th class="num">ROAS</th><th class="num">CPC</th><th class="num">Conv.</th></tr></thead>
+      <tbody>
+        <tr class="row-best"><td>Learn Data Analytics<span class="pill pill-green">Top Revenue</span></td><td class="num">$674K</td><td class="num">7.01×</td><td class="num">$1.60</td><td class="num">2,900</td></tr>
+        <tr><td>Online Data Analytics<span class="pill pill-blue">Most Conv.</span></td><td class="num">$666K</td><td class="num">6.83×</td><td class="num">$1.55</td><td class="num">2,995</td></tr>
+        <tr><td>Data Analytics Course<span class="pill pill-green">Best ROAS</span></td><td class="num">$665K</td><td class="num">7.09×</td><td class="num">$1.51</td><td class="num">2,904</td></tr>
+        <tr><td>Analyticss For Data</td><td class="num">$641K</td><td class="num">6.91×</td><td class="num">$1.56</td><td class="num">2,757</td></tr>
+        <tr><td>Data Analytics Online</td><td class="num">$630K</td><td class="num">6.97×</td><td class="num">$1.54</td><td class="num">2,684</td></tr>
+        <tr class="row-worst"><td>Data Analytics Training<span class="pill pill-red">Lowest Rev.</span></td><td class="num">$620K</td><td class="num">7.01×</td><td class="num">$1.53</td><td class="num">2,745</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">CPC range $1.51–$1.60 — extremely tight. No keyword is bleeding budget. Increase bids on "Data Analytics Course" for best ROAS. Keep "Online Data Analytics" for conversion volume. Note: some keyword names contain typos ("Analyticss") which may affect Quality Score over time.</div>
+</div>
+
+<!-- WEEKDAYS -->
+<div class="section" id="weekdays">
+  <div class="section-label">Day-of-week performance</div>
+  <h2>When Should You Spend More?</h2>
+  <p class="section-desc">Daily totals were averaged correctly per weekday — summed per date first across all devices and keywords, then averaged across dates. Direct .mean() on raw rows would give wrong results.</p>
+
+  <div class="two-col">
+    <div class="chart-card">
+      <div class="chart-card-title">Total Clicks by Weekday</div>
+      <div class="chart-card-sub">Thursday leads with 67K clicks across the year</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="dowClicks"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">ROAS by Day of Week</div>
+      <div class="chart-card-sub">Saturday best return (7.19×) · Tuesday worst (6.78×)</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="dowRoas"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-title">Total Conversions by Weekday</div>
+    <div class="chart-card-sub">Thursday and Wednesday perform best for actual sales</div>
+    <div class="chart-wrap" style="height:180px"><canvas id="dowConv"></canvas></div>
+  </div>
+
+  <div class="section-label" style="margin-top:4px">Full weekday breakdown</div>
+  <div style="overflow-x:auto;margin-top:12px">
+    <table class="data-table">
+      <thead><tr><th>Day</th><th class="num">Total Clicks</th><th class="num">Conversions</th><th class="num">ROAS</th></tr></thead>
+      <tbody>
+        <tr class="row-best"><td>Thursday<span class="pill pill-green">Most traffic</span></td><td class="num">67,211</td><td class="num">3,090</td><td class="num">7.02×</td></tr>
+        <tr><td>Saturday<span class="pill pill-green">Best ROAS</span></td><td class="num">51,813</td><td class="num">2,401</td><td class="num">7.19×</td></tr>
+        <tr><td>Wednesday</td><td class="num">56,763</td><td class="num">2,747</td><td class="num">6.90×</td></tr>
+        <tr><td>Friday</td><td class="num">51,484</td><td class="num">2,460</td><td class="num">7.00×</td></tr>
+        <tr><td>Sunday</td><td class="num">46,496</td><td class="num">2,227</td><td class="num">6.83×</td></tr>
+        <tr><td>Monday</td><td class="num">49,605</td><td class="num">2,276</td><td class="num">6.97×</td></tr>
+        <tr class="row-worst"><td>Tuesday<span class="pill pill-red">Weakest</span></td><td class="num">37,921</td><td class="num">1,784</td><td class="num">6.78×</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">Push budget toward Thursday (most conversions) and Saturday (best ROAS). Reduce Tuesday allocation — it consistently underperforms across every metric.</div>
+</div>
+
+<!-- CORRELATIONS -->
+<div class="section">
+  <div class="section-label">Metric relationships</div>
+  <h2>How Metrics Connect</h2>
+  <p class="section-desc">A correlation heatmap showed how key metrics move together — and some findings were counterintuitive.</p>
+  <div class="chart-card">
+    <div class="chart-card-title">Correlation Between Key Metrics</div>
+    <div class="chart-card-sub">Closer to 1.0 = strong positive · Closer to −1.0 = move in opposite directions</div>
+    <div class="chart-wrap" style="height:220px"><canvas id="corrChart"></canvas></div>
+  </div>
+  <div class="insights">
+    <div class="insight"><div class="insight-icon">📈</div><div><div class="insight-head">Cost ↔ Revenue: highly correlated</div><div class="insight-txt">Spend drives revenue fairly linearly. The campaign scales predictably — more budget = more revenue at roughly the same ROAS.</div></div></div>
+    <div class="insight"><div class="insight-icon">↕️</div><div><div class="insight-head">Clicks ↔ Conversion Rate: weakly correlated</div><div class="insight-txt">More clicks do NOT automatically mean better conversion rate. High-traffic campaigns often attract lower-intent audiences. Landing page quality matters more than traffic volume.</div></div></div>
+    <div class="insight"><div class="insight-icon">💡</div><div><div class="insight-head">Conversions ↔ Conversion Rate: strong positive</div><div class="insight-txt">When conversion rate is high, total conversions are also high. Improving the rate — through better ad copy or landing pages — has a compounding effect.</div></div></div>
+  </div>
+</div>
+
+<!-- FINDINGS -->
+<div class="section" id="findings">
+  <div class="section-label">Summary</div>
+  <h2>Key Findings & Recommendations</h2>
+  <p class="section-desc">Every pattern in the data points to a concrete action.</p>
+  <div class="rec-list">
+    <div class="rec-row"><span class="rec-find">ROAS = 6.97× — campaign is highly profitable</span><span class="rec-action">Scale the campaign</span></div>
+    <div class="rec-row"><span class="rec-find">November = 76% of annual revenue ($2.98M)</span><span class="rec-action">Reduce dependency</span></div>
+    <div class="rec-row"><span class="rec-find">June = lowest ROAS of the year (6.36×)</span><span class="rec-action">Run June promotions</span></div>
+    <div class="rec-row"><span class="rec-find">Mobile: most clicks at lowest cost</span><span class="rec-action">Shift Tablet → Mobile</span></div>
+    <div class="rec-row"><span class="rec-find">"Data Analytics Course" = best ROAS (7.09×)</span><span class="rec-action">Increase bids here</span></div>
+    <div class="rec-row"><span class="rec-find">"Online Data Analytics" = most conversions (2,995)</span><span class="rec-action">Keep for volume</span></div>
+    <div class="rec-row"><span class="rec-find">Thursday = most clicks (67K) & conversions (3,090)</span><span class="rec-action">Increase Thu budget</span></div>
+    <div class="rec-row"><span class="rec-find">Saturday = best ROAS of the week (7.19×)</span><span class="rec-action">Prioritise Sat spend</span></div>
+    <div class="rec-row"><span class="rec-find">Tuesday = weakest across all metrics</span><span class="rec-action">Cut Tuesday budget</span></div>
+    <div class="rec-row"><span class="rec-find">More clicks ≠ better conversion rate</span><span class="rec-action">Improve landing pages</span></div>
+  </div>
+  <div class="note" style="margin-top:20px;font-size:14px;line-height:1.7">
+    <strong>Bottom line:</strong> The campaign is highly profitable at 6.97× ROAS — but performance is concentrated in November, two keywords, and two days of the week. Future work should scale what already works while building resilience across the rest of the year.
+  </div>
+</div>
+
+<footer>
+  <div class="footer-name">Yashraj Sharma</div>
+  <div class="footer-sub">
+    Data Analyst · Delhi, India<br>
+    Python · Pandas · NumPy · Matplotlib · Seaborn
+  </div>
+  <div class="footer-links">
+    <a class="footer-link" href="https://github.com/yashraj-DS" target="_blank">⭐ GitHub Repo</a>
+    <a class="footer-link" href="https://www.linkedin.com/in/yashraj-sharma-4a87ab348/" target="_blank">💼 LinkedIn</a>
+  </div>
+</footer>
+
+<script>
+const OG='#FF6B00', OG2='#FF9944', GRAY='#c5c5c0';
+const tickStyle={color:'#888',font:{size:11,family:'system-ui'}};
+const gridStyle={color:'rgba(0,0,0,0.06)'};
+const noLegend={legend:{display:false}};
+const TIP={backgroundColor:'#fff',borderColor:'#e8e8e8',borderWidth:1,titleColor:'#1a1a1a',bodyColor:'#666',padding:10,titleFont:{size:12,weight:'600'},bodyFont:{size:12}};
+const baseOpts=(yLabel)=>({
+  responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:TIP},
+  scales:{
+    x:{grid:{display:false},ticks:tickStyle,border:{display:false}},
+    y:{grid:gridStyle,ticks:{...tickStyle,callback:yLabel||undefined},border:{display:false}}
+  }
+});
+
+// ── REAL DATA FROM NOTEBOOK ──
+const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const mRev  =[71994,82071,78491,89409,100257,58784,100561,95692,84515,77971,2981376,75366];
+const mCost =[10650,12110,11768,12191,14324,9246,13848,13994,12463,11302,426039,11299];
+const mRoas =[6.76,6.78,6.67,7.33,7.0,6.36,7.26,6.84,6.78,6.9,7.0,6.67];
+const mClicks=[7244,7419,7417,8536,9331,6079,8686,8905,8212,7140,275107,7217];
+
+// MONTHLY BAR (log scale)
+new Chart(document.getElementById('monthlyBar'),{
+  type:'bar',
+  data:{labels:months,datasets:[
+    {label:'Revenue',data:mRev,backgroundColor:OG,borderRadius:4,borderSkipped:false},
+    {label:'Ad Spend',data:mCost,backgroundColor:GRAY,borderRadius:4,borderSkipped:false}
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,labels:{color:'#888',font:{size:11,family:'system-ui'},usePointStyle:true,pointStyleWidth:10}},tooltip:{...TIP,callbacks:{label:c=>' $'+c.parsed.y.toLocaleString()}}},
+    scales:{
+      x:{grid:{display:false},ticks:tickStyle,border:{display:false}},
+      y:{type:'logarithmic',grid:gridStyle,ticks:{...tickStyle,callback:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+v},border:{display:false}}
+    }
+  }
+});
+
+// ROAS LINE
+new Chart(document.getElementById('roasLine'),{
+  type:'line',
+  data:{labels:months,datasets:[{
+    data:mRoas,
+    borderColor:OG,backgroundColor:'rgba(255,107,0,0.08)',fill:true,tension:0.35,
+    pointRadius:4,pointBackgroundColor:OG,pointBorderColor:'#fff',pointBorderWidth:1.5,borderWidth:2
+  }]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>' '+c.parsed.y.toFixed(2)+'×'}}},
+    scales:{
+      x:{grid:{display:false},ticks:tickStyle,border:{display:false}},
+      y:{grid:gridStyle,min:6.2,ticks:{...tickStyle,callback:v=>v.toFixed(1)+'×'},border:{display:false}}
+    }
+  }
+});
+
+// CLICKS BAR
+new Chart(document.getElementById('clicksBar'),{
+  type:'bar',
+  data:{labels:months,datasets:[{
+    data:mClicks,
+    backgroundColor:ctx=>mClicks[ctx.dataIndex]===275107?OG:'rgba(255,107,0,0.3)',
+    borderRadius:4,borderSkipped:false
+  }]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>' '+c.parsed.y.toLocaleString()+' clicks'}}},
+    scales:{
+      x:{grid:{display:false},ticks:tickStyle,border:{display:false}},
+      y:{type:'logarithmic',grid:gridStyle,ticks:{...tickStyle,callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v},border:{display:false}}
+    }
+  }
+});
+
+// DEVICE DOUGHNUT — real data: Desktop $1.33M, Mobile $1.31M, Tablet $1.25M
+new Chart(document.getElementById('deviceDoughnut'),{
+  type:'doughnut',
+  data:{
+    labels:['Desktop  34.2%','Mobile  33.7%','Tablet  32.1%'],
+    datasets:[{data:[1331672,1313739,1251074],backgroundColor:[OG,OG2,GRAY],borderWidth:0,hoverOffset:4}]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,cutout:'68%',
+    plugins:{
+      legend:{display:true,position:'bottom',labels:{color:'#555',font:{size:12,family:'system-ui'},padding:14,usePointStyle:true,pointStyleWidth:10}},
+      tooltip:{...TIP,callbacks:{label:c=>' $'+(c.parsed/1e6).toFixed(2)+'M'}}
+    }
+  }
+});
+
+// DEVICE CLICKS — real data: Desktop 121,887 · Mobile 123,068 · Tablet 116,338
+new Chart(document.getElementById('deviceClicks'),{
+  type:'bar',
+  data:{
+    labels:['Desktop','Mobile','Tablet'],
+    datasets:[{data:[121887,123068,116338],backgroundColor:[OG,OG2,GRAY],borderRadius:6,borderSkipped:false}]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>' '+c.parsed.y.toLocaleString()+' clicks'}}},
+    scales:{
+      x:{grid:{display:false},ticks:tickStyle,border:{display:false}},
+      y:{grid:gridStyle,ticks:{...tickStyle,callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v},border:{display:false}}
+    }
+  }
+});
+
+// KEYWORD REVENUE — real data sorted ascending for horizontal bar
+// Learn DA $674K, Online DA $666K, DA Course $665K, DA For Data $641K, DA Online $630K, DA Training $620K
+new Chart(document.getElementById('kwRevenue'),{
+  type:'bar',
+  data:{
+    labels:['DA Training','DA Online','DA For Data','DA Course','Online DA','Learn DA'],
+    datasets:[{
+      data:[620013,630199,640703,664696,666043,674831],
+      backgroundColor:['rgba(255,107,0,.2)','rgba(255,107,0,.3)','rgba(255,107,0,.4)','rgba(255,107,0,.55)','rgba(255,107,0,.7)',OG],
+      borderRadius:4,borderSkipped:false
+    }]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>' $'+c.parsed.x.toLocaleString()}}},
+    scales:{
+      x:{grid:gridStyle,min:600000,ticks:{...tickStyle,callback:v=>'$'+(v/1000).toFixed(0)+'K'},border:{display:false}},
+      y:{grid:{display:false},ticks:{...tickStyle,font:{size:11}},border:{display:false}}
+    }
+  }
+});
+
+// KEYWORD ROAS — sorted ascending
+// DA Course 7.09×, Learn DA 7.01×, DA Training 7.01×, DA Online 6.97×, DA For Data 6.91×, Online DA 6.83×
+new Chart(document.getElementById('kwRoas'),{
+  type:'bar',
+  data:{
+    labels:['Online DA','DA For Data','DA Online','DA Training','Learn DA','DA Course'],
+    datasets:[{
+      data:[6.83,6.91,6.97,7.01,7.01,7.09],
+      backgroundColor:['rgba(255,107,0,.2)','rgba(255,107,0,.3)','rgba(255,107,0,.4)','rgba(255,107,0,.55)','rgba(255,107,0,.7)',OG],
+      borderRadius:4,borderSkipped:false
+    }]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>' '+c.parsed.x.toFixed(3)+'×'}}},
+    scales:{
+      x:{grid:gridStyle,min:6.75,ticks:{...tickStyle,callback:v=>v.toFixed(2)+'×'},border:{display:false}},
+      y:{grid:{display:false},ticks:{...tickStyle,font:{size:11}},border:{display:false}}
+    }
+  }
+});
+
+// KEYWORD CONVERSIONS — sorted ascending
+// Online DA 2,995, DA Course 2,904, Learn DA 2,900, DA Training 2,745, DA For Data 2,757, DA Online 2,684
+new Chart(document.getElementById('kwConv'),{
+  type:'bar',
+  data:{
+    labels:['DA Online','DA For Data','DA Training','Learn DA','DA Course','Online DA'],
+    datasets:[{
+      data:[2684,2757,2745,2900,2904,2995],
+      backgroundColor:['rgba(255,107,0,.2)','rgba(255,107,0,.3)','rgba(255,107,0,.4)','rgba(255,107,0,.55)','rgba(255,107,0,.7)',OG],
+      borderRadius:4,borderSkipped:false
+    }]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>' '+c.parsed.x.toLocaleString()+' conversions'}}},
+    scales:{
+      x:{grid:gridStyle,ticks:tickStyle,border:{display:false}},
+      y:{grid:{display:false},ticks:{...tickStyle,font:{size:11}},border:{display:false}}
+    }
+  }
+});
+
+// DOW CLICKS — real data
+const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const dowClk=[49605,37921,56763,67211,51484,51813,46496];
+new Chart(document.getElementById('dowClicks'),{
+  type:'bar',
+  data:{
+    labels:days,
+    datasets:[{
+      data:dowClk,
+      backgroundColor:dowClk.map(v=>v===67211?OG:v===37921?'rgba(220,50,50,0.5)':'rgba(255,107,0,0.35)'),
+      borderRadius:4,borderSkipped:false
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>' '+c.parsed.y.toLocaleString()+' clicks'}}},
+    scales:{
+      x:{grid:{display:false},ticks:tickStyle,border:{display:false}},
+      y:{grid:gridStyle,ticks:{...tickStyle,callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v},border:{display:false}}
+    }
+  }
+});
+
+// DOW ROAS — real data
+const dowRs=[6.97,6.78,6.90,7.02,7.00,7.19,6.83];
+new Chart(document.getElementById('dowRoas'),{
+  type:'line',
+  data:{
+    labels:days,
+    datasets:[{
+      data:dowRs,
+      borderColor:OG,backgroundColor:'rgba(255,107,0,0.07)',fill:true,tension:0.3,
+      pointRadius:5,
+      pointBackgroundColor:dowRs.map(v=>v===7.19?'#2e7d32':v===6.78?'#c62828':'#fff'),
+      pointBorderColor:dowRs.map(v=>v===7.19?'#2e7d32':v===6.78?'#c62828':OG),
+      pointBorderWidth:2,borderWidth:2
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>' '+c.parsed.y.toFixed(2)+'×'}}},
+    scales:{
+      x:{grid:{display:false},ticks:tickStyle,border:{display:false}},
+      y:{grid:gridStyle,min:6.6,ticks:{...tickStyle,callback:v=>v.toFixed(2)+'×'},border:{display:false}}
+    }
+  }
+});
+
+// DOW CONVERSIONS — real data
+const dowConv=[2276,1784,2747,3090,2460,2401,2227];
+new Chart(document.getElementById('dowConv'),{
+  type:'bar',
+  data:{
+    labels:days,
+    datasets:[{
+      data:dowConv,
+      backgroundColor:dowConv.map(v=>v===3090?OG:v===1784?'rgba(220,50,50,0.5)':'rgba(255,107,0,0.35)'),
+      borderRadius:4,borderSkipped:false
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>' '+c.parsed.y.toLocaleString()+' conversions'}}},
+    scales:{
+      x:{grid:{display:false},ticks:tickStyle,border:{display:false}},
+      y:{grid:gridStyle,min:1500,ticks:tickStyle,border:{display:false}}
+    }
+  }
+});
+
+// CORRELATION — approximate from notebook heatmap
+new Chart(document.getElementById('corrChart'),{
+  type:'bar',
+  data:{
+    labels:['Cost ↔ Revenue','Conversions ↔ Conv. Rate','Clicks ↔ Impressions','Clicks ↔ Conv. Rate'],
+    datasets:[{
+      data:[0.91,0.74,0.88,-0.12],
+      backgroundColor:['rgba(46,125,50,0.75)','rgba(46,125,50,0.6)','rgba(46,125,50,0.5)','rgba(198,40,40,0.55)'],
+      borderRadius:4,borderSkipped:false
+    }]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>' r = '+c.parsed.x.toFixed(2)}}},
+    scales:{
+      x:{grid:gridStyle,min:-0.3,max:1,ticks:tickStyle,border:{display:false}},
+      y:{grid:{display:false},ticks:{...tickStyle,font:{size:11}},border:{display:false}}
+    }
+  }
+});
+</script>
+</body>
+</html>
